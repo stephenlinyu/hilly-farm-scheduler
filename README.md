@@ -49,7 +49,7 @@ pip install -r requirements.txt
 python run_server.py
 ```
 
-浏览器打开 `http://127.0.0.1:5000/login`（管理端）或 `/worker/login`（作业端）。
+浏览器打开管理端或作业端。
 
 首次启动会生成 `farm_management.sqlite` 与 `.farm_secret_key`，请在管理端修改默认密码。
 
