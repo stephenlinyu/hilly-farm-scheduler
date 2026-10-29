@@ -1,0 +1,27 @@
+{
+  "enabled": false,
+  "serviceUrl": "https://open.figps.com/api",
+  "appid": "请填写商家开通API后的登录名",
+  "key": "请填写商家提供的API登录秘钥，不是小程序登录密码",
+  "imei": "862000000000001",
+  "machineId": "R-001",
+  "pollIntervalSeconds": 10,
+  "coordType": "gcj02",
+  "requestTimeoutSeconds": 20,
+  "onlineTimeoutSeconds": 600,
+  "storeHistory": false,
+  "additionalDevices": [
+    {
+      "enabled": false,
+      "appid": "第二个API账号，没有附加设备时删除此对象",
+      "key": "第二个API账号的登录秘钥",
+      "imei": "第二台设备的完整IMEI",
+      "machineId": "R-002",
+      "pollIntervalSeconds": 10,
+      "coordType": "gcj02",
+      "requestTimeoutSeconds": 20,
+      "onlineTimeoutSeconds": 600,
+      "storeHistory": false
+    }
+  ]
+}

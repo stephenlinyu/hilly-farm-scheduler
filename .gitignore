@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Runtime data
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+.farm_secret_key
+farm_management*.sqlite
+
+# Local secrets / config (only .example.json is committed)
+amap_config.json
+gpswv_config.json
+
+# Logs / tunnels
+*.log
+cpolar*
+*.tmp
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store

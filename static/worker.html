@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>智能农机作业端</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/worker.css?v=3" />
+  </head>
+  <body class="worker-app-page">
+    <div class="worker-app">
+      <header class="worker-topbar">
+        <div>
+          <p id="worker-role">工作人员端</p>
+          <h1 id="worker-name">作业端</h1>
+        </div>
+        <div class="worker-top-actions">
+          <button id="worker-refresh" class="mobile-icon-button" type="button" title="刷新" aria-label="刷新">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+          <button id="worker-logout" class="mobile-icon-button danger" type="button" title="退出" aria-label="退出登录">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </header>
+
+      <main class="worker-content">
+        <section id="view-home" class="mobile-view active" aria-label="工作台">
+          <div class="machine-hero">
+            <div>
+              <span id="machine-status" class="mobile-status-pill">--</span>
+              <h2 id="machine-title">--</h2>
+              <p id="machine-subtitle">--</p>
+            </div>
+            <strong id="machine-speed">0.0 km/h</strong>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-tile">
+              <span>待接收</span>
+              <strong id="metric-pending">0</strong>
+            </article>
+            <article class="metric-tile">
+              <span>已完成</span>
+              <strong id="metric-received">0</strong>
+            </article>
+            <article class="metric-tile">
+              <span>作业面积</span>
+              <strong id="metric-area">0亩</strong>
+            </article>
+            <article class="metric-tile">
+              <span>信号</span>
+              <strong id="metric-signal">0%</strong>
+            </article>
+          </div>
+
+          <div class="section-head">
+            <h2>当前任务</h2>
+            <button class="text-link-button" data-view-target="tasks" type="button">查看全部</button>
+          </div>
+          <div id="home-task-list" class="mobile-list"></div>
+        </section>
+
+        <section id="view-tasks" class="mobile-view" aria-label="任务">
+          <div class="section-head sticky-head">
+            <h2>任务分配</h2>
+            <span id="task-count-label">0 个任务</span>
+          </div>
+          <div id="task-list" class="mobile-list"></div>
+        </section>
+
+        <section id="view-map" class="mobile-view map-view" aria-label="地图">
+          <div id="worker-map" class="worker-map"></div>
+          <div id="map-summary" class="map-summary"></div>
+        </section>
+
+        <section id="view-notices" class="mobile-view" aria-label="通知">
+          <div class="section-head sticky-head">
+            <h2>通知</h2>
+            <span id="notice-count-label">0 条</span>
+          </div>
+          <div id="notice-list" class="mobile-list"></div>
+        </section>
+
+        <section id="view-machine" class="mobile-view" aria-label="我的农机">
+          <div class="section-head">
+            <h2>我的农机</h2>
+          </div>
+          <div id="machine-detail" class="detail-list"></div>
+
+          <form id="worker-password-form" class="password-tool">
+            <h2>修改密码</h2>
+            <label>
+              <span>当前密码</span>
+              <input id="worker-current-password" type="password" autocomplete="current-password" required />
+            </label>
+            <label>
+              <span>新密码</span>
+              <input id="worker-new-password" type="password" autocomplete="new-password" minlength="12" required />
+            </label>
+            <label>
+              <span>确认新密码</span>
+              <input id="worker-confirm-password" type="password" autocomplete="new-password" minlength="12" required />
+            </label>
+            <button id="worker-password-submit" class="primary-mobile-button" type="submit">保存密码</button>
+            <p id="worker-password-message" class="mobile-message" role="status"></p>
+          </form>
+        </section>
+      </main>
+
+      <nav class="mobile-tabbar" aria-label="工作人员端导航">
+        <button class="tab-button active" data-view="home" type="button">
+          <i data-lucide="layout-dashboard"></i>
+          <span>工作台</span>
+        </button>
+        <button class="tab-button" data-view="tasks" type="button">
+          <i data-lucide="list-checks"></i>
+          <span>任务</span>
+        </button>
+        <button class="tab-button" data-view="map" type="button">
+          <i data-lucide="map"></i>
+          <span>地图</span>
+        </button>
+        <button class="tab-button" data-view="notices" type="button">
+          <i data-lucide="bell"></i>
+          <span>通知</span>
+        </button>
+        <button class="tab-button" data-view="machine" type="button">
+          <i data-lucide="tractor"></i>
+          <span>我的</span>
+        </button>
+      </nav>
+
+      <div id="worker-toast" class="mobile-toast" role="status"></div>
+    </div>
+
+    <script src="/vendor/leaflet/leaflet.js"></script>
+    <script src="/vendor/lucide/lucide.min.js"></script>
+    <script src="/security.js?v=1"></script>
+    <script src="/map-provider.js?v=2"></script>
+    <script src="/worker.js?v=8"></script>
+  </body>
+</html>

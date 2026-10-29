@@ -1,0 +1,36 @@
+Runtime and dependency manifest
+===============================
+
+Target: Windows x64 (AMD64)
+Python: 3.12.10 embeddable distribution
+Source: https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip
+Runtime SHA256: 4ACBED6DD1C744B0376E3B1CF57CE906F9DC9E95E68824584C8099A63025A3C3
+
+Python packages are pinned in requirements.lock.txt.
+Package license files and metadata are retained under:
+  python\LICENSE.txt
+  python\Lib\site-packages\*.dist-info
+
+TLS certificate validation for the vendor API uses truststore 0.10.4 and the
+Windows native certificate store. HTTPS verification remains enabled.
+
+Application mode included by default:
+  Flask application + Waitress server + SQLite database
+  JT/T 808 TCP receiver (Python standard library: socket/threading/sqlite3)
+  Python genetic-algorithm scheduler (Python standard library only)
+
+The locator merge does not require Java, Gradle, Spring Boot, Netty, or MySQL.
+
+Optional external components not bundled:
+  MATLAB (scheduler execution)
+  MySQL Server (only needed when FARM_DB_DRIVER=mysql)
+  cpolar and its personal configuration (public tunnel only)
+  Online map tile services (network access required for map imagery)
+  GPSWV/FIGPS vendor cloud API account (only needed for S50 cloud positioning)
+
+Vendor cloud positioning:
+  API base: https://open.figps.com/api
+  Transport: HTTPS JSON via the Python standard library
+  Multiple devices: primary config plus optional additionalDevices entries
+  Local secret file: gpswv_config.json (must not be included in distributions)
+  Distribution template: gpswv_config.example.json

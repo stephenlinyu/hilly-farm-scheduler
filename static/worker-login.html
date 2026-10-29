@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>工作人员登录 - 智能农机作业端</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/worker.css?v=2" />
+  </head>
+  <body class="worker-login-page">
+    <main class="worker-login-shell">
+      <section class="worker-login-brand" aria-label="系统名称">
+        <div class="mobile-brand-mark">农</div>
+        <p>智能农机作业端</p>
+        <h1>工作人员登录</h1>
+        <span>接收任务、查看农机状态与作业位置</span>
+      </section>
+
+      <form id="worker-login-form" class="worker-login-panel">
+        <label>
+          <span>账号</span>
+          <input id="worker-username" name="username" autocomplete="username" placeholder="请输入工作人员账号" required />
+        </label>
+        <label>
+          <span>密码</span>
+          <input id="worker-password" name="password" type="password" autocomplete="current-password" placeholder="请输入密码" required />
+        </label>
+        <button id="worker-login-button" class="primary-mobile-button" type="submit">登录作业端</button>
+        <p id="worker-login-message" class="mobile-message" role="status"></p>
+      </form>
+    </main>
+
+    <script>
+      const form = document.getElementById('worker-login-form');
+      const message = document.getElementById('worker-login-message');
+      const button = document.getElementById('worker-login-button');
+
+      fetch('/api/auth/me')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.authenticated && data.user?.role === 'worker') {
+            window.location.href = '/worker';
+          }
+        })
+        .catch(() => {});
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        message.textContent = '';
+        message.classList.remove('error');
+        const passwordInput = document.getElementById('worker-password');
+        if (passwordInput.value !== passwordInput.value.trim()) {
+          message.textContent = '密码前后包含空格，请删除空格后再登录';
+          message.classList.add('error');
+          passwordInput.focus();
+          return;
+        }
+        button.disabled = true;
+        button.textContent = '登录中...';
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: document.getElementById('worker-username').value,
+              password: document.getElementById('worker-password').value,
+              role: 'worker'
+            })
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            message.textContent = data.error || '登录失败';
+            message.classList.add('error');
+            return;
+          }
+
+          message.textContent = '登录成功，正在进入作业端...';
+          window.location.href = data.redirect || '/worker';
+        } catch (err) {
+          message.textContent = '网络异常，请稍后重试';
+          message.classList.add('error');
+        } finally {
+          button.disabled = false;
+          button.textContent = '登录作业端';
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>丘陵山地智能农机研发项目——重庆邮电大学</title>
+    <link
+      rel="stylesheet"
+      href="./vendor/leaflet/leaflet.css"
+    />
+    <link
+      rel="stylesheet"
+      href="./vendor/markercluster/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="./vendor/markercluster/MarkerCluster.Default.css"
+    />
+    <link rel="stylesheet" href="./styles.css?v=20" />
+    <style>
+      /* ===== 任务分配面板样式 ===== */
+      .assignment-form {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding: 14px;
+        background: #f7fafc;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+      }
+      .assignment-form label {
+        display: grid;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a5568;
+      }
+      .assignment-form select,
+      .assignment-form input,
+      .assignment-form textarea {
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #fff;
+        font-family: inherit;
+      }
+      .assignment-form select:focus,
+      .assignment-form input:focus,
+      .assignment-form textarea:focus {
+        outline: none;
+        border-color: #2b6cb0;
+        box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.15);
+      }
+      .assignment-form textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+      .assignment-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .assignment-terminal {
+        font-size: 13px;
+        color: #718096;
+        padding: 4px 8px;
+        background: #edf2f7;
+        border-radius: 6px;
+        min-height: 28px;
+        display: flex;
+        align-items: center;
+      }
+      .assignment-terminal.online {
+        color: #38a169;
+        background: #c6f6d5;
+      }
+      .assignment-terminal.offline {
+        color: #e53e3e;
+        background: #fed7d7;
+      }
+      .assignment-subtitle {
+        margin-top: 6px;
+        padding-top: 10px;
+        border-top: 1px solid #e2e8f0;
+      }
+      .assignment-list {
+        display: grid;
+        gap: 8px;
+        max-height: 380px;
+        overflow-y: auto;
+      }
+      .assignment-item {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        display: grid;
+        gap: 6px;
+      }
+      .assignment-item .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .assignment-item .head .id {
+        font-weight: 600;
+        font-size: 14px;
+        color: #2b6cb0;
+      }
+      .assignment-item .head .status {
+        font-size: 12px;
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-weight: 500;
+      }
+      .assignment-item .head .status.待接收 {
+        background: #fefcbf;
+        color: #975a16;
+      }
+      .assignment-item .head .status.已接收 {
+        background: #c6f6d5;
+        color: #276749;
+      }
+      .assignment-item .head .status.已下发 {
+        background: #bee3f8;
+        color: #2a69ac;
+      }
+      .assignment-item .head .status.已撤销 {
+        background: #fed7d7;
+        color: #9b2c2c;
+      }
+      .assignment-item .body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        font-size: 13px;
+        color: #4a5568;
+      }
+      .assignment-item .body .tag {
+        background: #edf2f7;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        color: #4a5568;
+      }
+      .assignment-item .note {
+        font-size: 12px;
+        color: #718096;
+        padding-top: 4px;
+        border-top: 1px dashed #e2e8f0;
+      }
+      .assignment-item .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+      }
+      .assignment-item .actions .btn-sm {
+        padding: 3px 12px;
+        font-size: 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .assignment-item .actions .btn-sm.danger {
+        background: #e53e3e;
+        color: #fff;
+      }
+      .assignment-item .actions .btn-sm.danger:hover {
+        background: #c53030;
+      }
+      .assignment-item .actions .btn-sm.success {
+        background: #38a169;
+        color: #fff;
+      }
+      .assignment-item .actions .btn-sm.success:hover {
+        background: #2f855a;
+      }
+      .assignment-empty {
+        text-align: center;
+        padding: 32px 16px;
+        color: #a0aec0;
+        font-size: 14px;
+      }
+      .assignment-empty .icon {
+        font-size: 36px;
+        margin-bottom: 8px;
+      }
+      .assignment-loading {
+        text-align: center;
+        padding: 24px;
+        color: #718096;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <div id="map" class="map" aria-label="农机服务地图"></div>
+      <div id="map-fallback" class="map-fallback hidden">
+        <i data-lucide="cloud-off"></i>
+        <span>地图瓦片暂不可用</span>
+      </div>
+
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">
+            <i data-lucide="sun-medium"></i>
+          </div>
+          <div>
+            <h1>丘陵山地智能农机研发项目——重庆邮电大学</h1>
+          </div>
+        </div>
+
+        <section class="summary-strip" aria-label="今日作业概览">
+          <div class="summary-item">
+            <span>今日亩数</span>
+            <strong id="stat-area">0</strong>
+          </div>
+          <div class="summary-item">
+            <span>农机总数</span>
+            <strong id="stat-online">0</strong>
+          </div>
+          <div class="summary-item">
+            <span>任务完成</span>
+            <strong id="stat-complete">0%</strong>
+          </div>
+          <div class="summary-item">
+            <span>预警</span>
+            <strong id="stat-alerts">0</strong>
+          </div>
+        </section>
+
+        <div class="top-actions">
+          <label class="search-box">
+            <i data-lucide="search"></i>
+            <input id="global-search" type="search" placeholder="搜索农机 / 地块" />
+          </label>
+          <button id="refresh-btn" class="icon-button" title="刷新数据" aria-label="刷新数据">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+          <!-- 
+          <button id="scheduler-btn" class="icon-button" title="计算候选方案" aria-label="计算候选方案" style="background:#805ad5;color:white;">
+            <i data-lucide="cpu"></i>
+          </button>
+          -->
+          <button id="auto-scheduler-btn" class="icon-button" title="一键调度" aria-label="一键调度" style="background:#38a169;color:white;">
+            <i data-lucide="zap"></i>
+          </button>
+          <span id="scheduler-status" style="font-size:12px;color:#718096;margin-left:6px;display:none;"></span>
+          <button class="icon-button" title="消息" aria-label="消息" data-panel-target="messages">
+            <i data-lucide="mail"></i>
+          </button>
+          <span id="current-user" class="user-chip">管理员</span>
+          <button id="password-btn" class="text-action-button" title="修改密码" aria-label="修改密码">
+            <i data-lucide="key-round"></i>
+            <span>密码</span>
+          </button>
+          <button id="logout-btn" class="text-action-button danger" title="退出登录" aria-label="退出登录">
+            <i data-lucide="log-out"></i>
+            <span>退出</span>
+          </button>
+          <button class="icon-button" title="全屏" aria-label="全屏" id="fullscreen-btn">
+            <i data-lucide="maximize-2"></i>
+          </button>
+        </div>
+      </header>
+
+      <aside class="sidebar">
+        <nav class="nav-list" aria-label="主导航">
+          <button class="nav-item active" data-panel="dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>工作台</span>
+          </button>
+          <button class="nav-item" data-panel="assignment">
+            <i data-lucide="list-checks"></i>
+            <span>任务分配</span>
+          </button>
+          <button class="nav-item" data-panel="tracks">
+            <i data-lucide="route"></i>
+            <span>农机轨迹</span>
+          </button>
+          <button class="nav-item" data-panel="video">
+            <i data-lucide="video"></i>
+            <span>农机视频</span>
+          </button>
+          <button class="nav-item" data-panel="historyVideo">
+            <i data-lucide="archive"></i>
+            <span>历史视频</span>
+          </button>
+          <button class="nav-item" data-panel="terminals">
+            <i data-lucide="radio-tower"></i>
+            <span>终端状态</span>
+          </button>
+          <button class="nav-item" data-panel="messages">
+            <i data-lucide="message-square"></i>
+            <span>站内消息</span>
+          </button>
+          <button class="nav-item" data-panel="tasks">
+            <i data-lucide="clipboard-list"></i>
+            <span>作业管理</span>
+          </button>
+          <button class="nav-item" data-panel="farms">
+            <i data-lucide="wheat"></i>
+            <span>农场管理</span>
+          </button>
+          <button class="nav-item" data-panel="system">
+            <i data-lucide="settings"></i>
+            <span>系统管理</span>
+          </button>
+        </nav>
+      </aside>
+
+      <main id="panel" class="panel" aria-live="polite">
+        <div class="panel-header">
+          <div>
+            <p id="panel-kicker">工作台</p>
+            <h2 id="panel-title">农机列表</h2>
+          </div>
+          <button id="panel-collapse" class="icon-button subtle" title="收起面板" aria-label="收起面板">
+            <i data-lucide="panel-left-close"></i>
+          </button>
+        </div>
+
+        <!-- ===== 工作台 ===== -->
+        <div id="dashboard-view" class="panel-view active">
+          <div class="filter-grid">
+            <label>
+              <span>农机类型</span>
+              <select id="type-filter">
+                <option value="all">全部类型</option>
+                <option value="tractor">拖拉机</option>
+                <option value="harvester">收割机</option>
+                <option value="seeder">播种机</option>
+                <option value="sprayer">植保机</option>
+              </select>
+            </label>
+            <label>
+              <span>农机状态</span>
+              <select id="status-filter">
+                <option value="all">全部状态</option>
+                <option value="working">作业中</option>
+                <option value="idle">待命</option>
+                <option value="offline">离线</option>
+              </select>
+            </label>
+          </div>
+          <div class="machine-category-tabs" role="tablist" aria-label="农机分类">
+            <button class="category-tab active" type="button" data-machine-category="all">全部</button>
+            <button class="category-tab" type="button" data-machine-category="demo">样机</button>
+            <button class="category-tab" type="button" data-machine-category="real">实机</button>
+          </div>
+          <label class="panel-search">
+            <i data-lucide="search"></i>
+            <input id="machine-search" type="search" placeholder="输入两个以上关键字" />
+          </label>
+          <div class="mini-tabs" role="tablist" aria-label="列表范围">
+            <button class="mini-tab active" data-scope="all">全部</button>
+            <button class="mini-tab" data-scope="today">今日作业</button>
+            <button class="mini-tab" data-scope="alerts">有预警</button>
+          </div>
+          <div id="machine-list" class="machine-list"></div>
+        </div>
+
+        <!-- ===== 任务分配 ===== -->
+        <div id="assignment-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="list-checks"></i>
+            <span>调度候选方案</span>
+            <button id="refresh-assignment" class="icon-button subtle" style="margin-left:auto;width:30px;height:30px;" title="查看当前已派发任务">
+              <i data-lucide="clipboard-check"></i>
+            </button>
+          </div>
+          <section class="auto-schedule-card" aria-label="下一轮智能分配">
+            <div class="auto-schedule-head">
+              <div>
+                <strong>演示农机候选方案</strong>
+                <span id="scheduler-progress-text">正在读取当前任务进度...</span>
+              </div>
+              <span id="scheduler-ready-badge" class="status-pill pending">检查中</span>
+            </div>
+            <div class="auto-schedule-progress" aria-hidden="true">
+              <span id="scheduler-progress-fill"></span>
+            </div>
+            <div id="scheduler-progress-meta" class="auto-schedule-meta">--</div>
+            <button id="scheduler-run-btn" class="primary-action" type="button" disabled>
+              <i data-lucide="wand-sparkles"></i>
+              <span>计算新的候选方案</span>
+            </button>
+          </section>
+          <div id="assignment-container">
+            <div class="assignment-empty">
+              <div class="icon">🧮</div>
+              <p>尚未计算候选方案</p>
+              <p style="font-size:13px;color:#a0aec0;margin-top:4px;">可重复计算并比较，确认后才会派发到手机端。</p>
+            </div>
+          </div>
+          <!-- 在 assignment-view 面板中添加 -->
+          <div class="section-title" style="margin-top:16px;border-top:1px solid #e2e8f0;padding-top:12px;">
+              <i data-lucide="clock"></i>
+              <span>历史调度结果</span>
+              <button id="refresh-history" class="icon-button subtle" style="margin-left:auto;width:30px;height:30px;">
+                  <i data-lucide="refresh-cw"></i>
+              </button>
+          </div>
+          <div id="history-list" style="max-height:200px;overflow-y:auto;">
+              <div class="loading" style="text-align:center;padding:12px;font-size:13px;color:#718096;">加载中...</div>
+          </div>
+        </div>
+
+        <!-- ===== 轨迹 ===== -->
+        <div id="tracks-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="route"></i>
+            <span>轨迹查询</span>
+          </div>
+          <p class="muted">样机查看计划路线，实机查询历史轨迹。</p>
+          <label class="panel-search track-machine-search">
+            <i data-lucide="search"></i>
+            <input id="track-machine-search" type="search" placeholder="搜索农机编号、名称或工作人员" />
+          </label>
+          <div id="track-machine-filters" class="mini-tabs track-category-tabs" role="tablist" aria-label="农机分类">
+            <button class="track-category-tab active" type="button" data-track-category="all">全部</button>
+            <button class="track-category-tab" type="button" data-track-category="demo">样机</button>
+            <button class="track-category-tab" type="button" data-track-category="real">实机</button>
+          </div>
+          <div id="track-machine-summary" class="track-machine-summary">正在加载农机...</div>
+          <div id="track-machine-list" class="compact-list"></div>
+          <div id="track-history-panel" class="track-history-panel hidden">
+            <div class="track-history-head">
+              <strong id="track-history-title">历史轨迹</strong>
+              <span id="track-history-status" class="muted">选择日期查看</span>
+            </div>
+            <label class="track-history-select">
+              <span>历史日期</span>
+              <select id="track-history-select" aria-label="历史轨迹日期"></select>
+            </label>
+          </div>
+          <form id="real-track-query-panel" class="real-track-query-panel hidden">
+            <div class="real-track-query-head">
+              <div>
+                <strong id="real-track-query-title">实机轨迹查询</strong>
+                <span>自定义时间范围查询</span>
+              </div>
+              <i data-lucide="calendar-range"></i>
+            </div>
+            <div class="real-track-shortcuts" aria-label="快捷时间范围">
+              <button type="button" data-real-track-range="today">今天</button>
+              <button type="button" data-real-track-range="yesterday">昨天</button>
+              <button type="button" data-real-track-range="this-week">本周</button>
+              <button type="button" data-real-track-range="last-week">上周</button>
+              <button type="button" class="active" data-real-track-range="last-hour">最近1小时</button>
+            </div>
+            <div class="real-track-time-range">
+              <label>
+                <span>开始时间</span>
+                <input id="real-track-start" type="datetime-local" required />
+              </label>
+              <span class="real-track-time-separator">至</span>
+              <label>
+                <span>结束时间</span>
+                <input id="real-track-end" type="datetime-local" required />
+              </label>
+            </div>
+            <button id="real-track-query-submit" class="real-track-query-submit" type="submit">
+              <i data-lucide="search"></i>
+              <span>查询轨迹</span>
+            </button>
+            <div class="real-track-query-footer">
+              <span id="real-track-query-status">单次最多查询 7 天</span>
+              <span id="real-track-query-result"></span>
+            </div>
+          </form>
+          <div class="interface-note">
+            <strong>查询说明</strong>
+            <span>实机单次最多查询 7 天，点位过多时自动抽稀显示</span>
+          </div>
+        </div>
+
+        <!-- ===== 视频 ===== -->
+        <div id="video-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="video"></i>
+            <span>农机视频</span>
+          </div>
+          <div id="video-grid" class="video-grid"></div>
+          <div class="interface-note">
+            <strong>接口预留</strong>
+            <span>GB28181 / RTSP / WebRTC / HLS</span>
+          </div>
+        </div>
+
+        <!-- ===== 历史视频 ===== -->
+        <div id="historyVideo-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="archive"></i>
+            <span>历史视频</span>
+          </div>
+          <div id="history-video-list" class="timeline-list"></div>
+        </div>
+
+        <!-- ===== 终端状态 ===== -->
+        <div id="terminals-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="radio-tower"></i>
+            <span>终端状态统计</span>
+          </div>
+          <div id="terminal-chart" class="chart"></div>
+          <div id="terminal-list" class="metric-list"></div>
+        </div>
+
+        <!-- ===== 站内消息 ===== -->
+        <div id="messages-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="message-square"></i>
+            <span>站内消息</span>
+          </div>
+          <div id="messages-list" class="timeline-list"></div>
+        </div>
+
+        <!-- ===== 作业管理 ===== -->
+        <div id="tasks-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="clipboard-list"></i>
+            <span>作业管理</span>
+          </div>
+          <form id="manual-task-form" class="assignment-form">
+            <label>
+              <span>分配农机 / 工作人员</span>
+              <select id="manual-task-machine" required></select>
+            </label>
+            <label>
+              <span>作业地块</span>
+              <select id="manual-task-field" required></select>
+            </label>
+            <div class="assignment-row">
+              <label>
+                <span>作业类型</span>
+                <select id="manual-task-operation">
+                  <option value="智能调度">智能调度</option>
+                  <option value="犁地">犁地</option>
+                  <option value="播种">播种</option>
+                  <option value="收割">收割</option>
+                  <option value="植保">植保</option>
+                  <option value="运输">运输</option>
+                  <option value="手动作业">手动作业</option>
+                </select>
+              </label>
+              <button id="manual-task-submit" class="primary-action" type="submit">
+                <i data-lucide="send"></i>
+                <span>分配任务</span>
+              </button>
+            </div>
+            <div id="manual-task-message" class="assignment-terminal">选择农机和地块后，可手动下发给对应工作人员。</div>
+          </form>
+          <div id="task-list" class="task-list"></div>
+        </div>
+
+        <!-- ===== 农场管理 ===== -->
+        <div id="farms-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="wheat"></i>
+            <span>农场管理</span>
+          </div>
+          <div id="field-list" class="field-list"></div>
+        </div>
+
+        <!-- ===== 系统管理 ===== -->
+        <div id="system-view" class="panel-view">
+          <div class="section-title">
+            <i data-lucide="settings"></i>
+            <span>系统管理</span>
+          </div>
+          <div class="settings-stack">
+            <div class="setting-row">
+              <div>
+                <strong>账号权限</strong>
+                <span>角色、组织、数据边界</span>
+              </div>
+              <span class="status-pill pending">待接入</span>
+            </div>
+            <div class="setting-row">
+              <div>
+                <strong>设备协议</strong>
+                <span>北斗/GPS 终端接入</span>
+              </div>
+              <span class="status-pill pending">待接入</span>
+            </div>
+            <div class="setting-row">
+              <div>
+                <strong>面积精算</strong>
+                <span>轨迹去重、地块裁剪、PostGIS</span>
+              </div>
+              <span class="status-pill pending">待接入</span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <section class="weather-card" aria-label="天气信息">
+        <div class="weather-main">
+          <i data-lucide="cloud-sun"></i>
+          <div>
+            <strong>28°C</strong>
+            <span>多云转晴</span>
+          </div>
+        </div>
+        <div class="weather-details">
+          <span><i data-lucide="wind"></i> 东南风 3级</span>
+          <span><i data-lucide="droplets"></i> 湿度 58%</span>
+          <span><i data-lucide="sprout"></i> 适合作业</span>
+        </div>
+      </section>
+
+      <section class="map-tools" aria-label="地图工具">
+        <button id="layer-satellite" class="tool-button" title="卫星图">
+          <i data-lucide="satellite"></i>
+          <span>卫星</span>
+        </button>
+        <button id="layer-street" class="tool-button active" title="普通地图">
+          <i data-lucide="map"></i>
+          <span>地图</span>
+        </button>
+        <button id="fit-all" class="tool-button" title="查看全部农机">
+          <i data-lucide="scan"></i>
+          <span>全图</span>
+        </button>
+        <button id="toggle-demo" class="tool-button active" title="隐藏演示农机、农田和计划轨迹">
+          <i data-lucide="layers-3"></i>
+          <span>演示开</span>
+        </button>
+      </section>
+
+      <section id="playback" class="playback">
+        <button id="play-btn" class="round-button" title="播放轨迹" aria-label="播放轨迹">
+          <i data-lucide="play"></i>
+        </button>
+        <button id="stop-btn" class="round-button ghost" title="停止轨迹" aria-label="停止轨迹">
+          <i data-lucide="square"></i>
+        </button>
+        <span id="play-current">00:00:00</span>
+        <input id="play-progress" type="range" min="0" max="100" value="0" aria-label="轨迹进度" />
+        <span id="play-total">00:00:00</span>
+        <select id="speed-select" aria-label="播放速度">
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1x</option>
+          <option value="2">2x</option>
+          <option value="4">4x</option>
+        </select>
+      </section>
+
+      <div id="toast" class="toast" role="status"></div>
+
+      <div id="password-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="password-title">
+        <form id="password-form" class="modal-panel">
+          <div class="modal-head">
+            <div>
+              <p>Account Security</p>
+              <h2 id="password-title">修改密码</h2>
+            </div>
+            <button id="password-close" class="icon-button subtle" type="button" title="关闭" aria-label="关闭">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+          <label>
+            <span>当前密码</span>
+            <input id="current-password" type="password" autocomplete="current-password" required />
+          </label>
+          <label>
+            <span>新密码</span>
+            <input id="new-password" type="password" autocomplete="new-password" minlength="12" required />
+          </label>
+          <label>
+            <span>确认新密码</span>
+            <input id="confirm-password" type="password" autocomplete="new-password" minlength="12" required />
+          </label>
+          <p id="password-message" class="modal-message" role="status"></p>
+          <button id="password-submit" class="primary-action" type="submit">保存新密码</button>
+        </form>
+      </div>
+    </div>
+
+    <script
+      src="./vendor/leaflet/leaflet.js"
+    ></script>
+    <script src="./vendor/markercluster/leaflet.markercluster.js"></script>
+    <script src="./vendor/echarts/echarts.min.js"></script>
+    <script src="./vendor/lucide/lucide.min.js"></script>
+    <script src="./security.js?v=1"></script>
+    <script src="./map-provider.js?v=2"></script>
+    <script src="./app.js?v=21"></script>
+
+    <!-- ===== 一键智能分配 ===== -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const buttons = [
+            document.getElementById('scheduler-btn'),
+            document.getElementById('scheduler-run-btn')
+        ].filter(Boolean);
+        const statusEl = document.getElementById('scheduler-status');
+        const progressText = document.getElementById('scheduler-progress-text');
+        const progressMeta = document.getElementById('scheduler-progress-meta');
+        const progressFill = document.getElementById('scheduler-progress-fill');
+        const readyBadge = document.getElementById('scheduler-ready-badge');
+        let latestStatus = null;
+        let scheduling = false;
+
+        function setButtonsDisabled(disabled) {
+            buttons.forEach(button => button.disabled = disabled);
+        }
+
+        function renderScheduleStatus(data) {
+            latestStatus = data;
+            const rate = Number(data.completion_rate || 0);
+            progressFill.style.width = `${Math.max(0, Math.min(100, rate))}%`;
+            progressMeta.textContent = `已完成 ${data.completed_tasks}/${data.total_tasks} · 未完成 ${data.blocking_tasks} · 可调度农机/有效账号 ${data.eligible_machines}/${data.total_machines} · 无有效账号 ${data.unbound_machines}`;
+
+            if (data.can_publish) {
+                progressText.textContent = data.pending_tasks > 0
+                    ? `当前有 ${data.pending_tasks} 个尚未接收的旧任务；可重复计算，确认派发时将替换这些任务。`
+                    : data.total_tasks === 0
+                        ? '当前没有正式任务，可计算并确认派发新的候选方案。'
+                        : '当前正式任务已全部完成，可计算并确认派发新的候选方案。';
+                readyBadge.textContent = '可派发';
+                readyBadge.className = 'status-pill complete';
+            } else {
+                progressText.textContent = `仍可重复计算候选方案；已有 ${data.received_tasks} 个任务被接收，暂时不能覆盖派发。`;
+                readyBadge.textContent = '仅预览';
+                readyBadge.className = 'status-pill working';
+            }
+            setButtonsDisabled(scheduling || !data.can_calculate);
+        }
+
+        async function loadScheduleStatus() {
+            try {
+                const response = await fetch('/api/schedule/status');
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || '读取任务进度失败');
+                renderScheduleStatus(data);
+            } catch (err) {
+                progressText.textContent = err.message;
+                readyBadge.textContent = '读取失败';
+                readyBadge.className = 'status-pill pending';
+                setButtonsDisabled(true);
+            }
+        }
+
+        function renderCandidatePlan(plan, canPublish) {
+            const container = document.getElementById('assignment-container');
+            const algorithmText = plan.algorithm === 'matlab_ga' ? 'Matlab 遗传算法' : 'Python 位置-负载近似算法';
+            const cards = plan.assignment.map(machine => `
+                <article style="background:#f7fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;">
+                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+                        <strong>🚜 ${machine.machine_name}</strong>
+                        <span class="status-pill pending">${machine.task_count} 个候选任务</span>
+                    </div>
+                    <div style="color:#718096;font-size:12px;margin-top:6px;">预计 ${Number(machine.estimated_hours || 0).toFixed(2)} 小时</div>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;">
+                        ${machine.tasks.map(task => `<span style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:3px 7px;font-size:12px;">${task.task_order}. ${task.farmland_name}</span>`).join('')}
+                    </div>
+                </article>
+            `).join('');
+            container.innerHTML = `
+                <section style="background:#eef6ff;border:1px solid #bee3f8;border-radius:12px;padding:14px;margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <div><strong>候选方案 #${plan.id}</strong><div style="font-size:12px;color:#4a5568;margin-top:3px;">${algorithmText} · ${plan.created_at}</div></div>
+                        <span class="status-pill pending">尚未派发</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px;font-size:12px;color:#4a5568;">
+                        <span>农机 ${plan.machine_count} 台</span><span>任务 ${plan.task_count} 个</span>
+                        <span>转移距离 ${Number(plan.total_distance_km).toFixed(1)} km</span><span>预计总工时 ${Number(plan.total_estimated_hours).toFixed(1)} h</span>
+                        <span>预计能耗 ${Number(plan.total_energy).toFixed(1)}</span><span>综合成本 ${Number(plan.total_cost).toFixed(2)}</span>
+                    </div>
+                    <button id="publish-schedule-plan" class="primary-action" type="button" style="margin-top:12px;" ${canPublish ? '' : 'disabled'}>
+                        <i data-lucide="send"></i><span>${canPublish ? '确认并派发到手机端' : '正式任务未完成，暂不可派发'}</span>
+                    </button>
+                </section>
+                <div style="display:grid;gap:10px;">${cards}</div>
+            `;
+            lucide.createIcons();
+            const publishButton = document.getElementById('publish-schedule-plan');
+            if (publishButton && canPublish) {
+                publishButton.addEventListener('click', () => publishSchedulePlan(plan.id, publishButton));
+            }
+            if (window.switchPanel) window.switchPanel('assignment');
+        }
+
+        async function publishSchedulePlan(planId, button) {
+            if (!window.confirm(`确认派发候选方案 #${planId} 吗？确认后工作人员手机端将收到正式任务。`)) return;
+            button.disabled = true;
+            button.querySelector('span').textContent = '正在派发...';
+            try {
+                const response = await fetch(`/api/schedule/plans/${planId}/publish`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || '派发失败');
+                alert('✅ ' + data.message);
+                location.reload();
+            } catch (err) {
+                alert('❌ ' + err.message);
+                button.disabled = false;
+                button.querySelector('span').textContent = '确认并派发到手机端';
+                await loadScheduleStatus();
+            }
+        }
+
+        async function runAutoSchedule() {
+            await loadScheduleStatus();
+            if (!latestStatus || !latestStatus.can_calculate || scheduling) return;
+
+            scheduling = true;
+            setButtonsDisabled(true);
+            statusEl.style.display = 'inline';
+            statusEl.textContent = '⏳ 正在计算...';
+            progressText.textContent = '正在计算位置、海拔、效率、油耗和负载，请稍候...';
+
+            try {
+                const response = await fetch('/api/schedule/calculate', { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || '智能分配失败');
+                statusEl.textContent = `✅ 候选 #${data.plan.id}`;
+                renderCandidatePlan(data.plan, data.can_publish);
+                scheduling = false;
+                await loadScheduleStatus();
+            } catch (err) {
+                statusEl.textContent = '❌ 分配失败';
+                alert('❌ ' + err.message);
+                scheduling = false;
+                await loadScheduleStatus();
+            }
+        }
+
+        buttons.forEach(button => button.addEventListener('click', runAutoSchedule));
+        loadScheduleStatus();
+        window.setInterval(loadScheduleStatus, 15000);
+    });
+    </script>
+
+    <!-- ===== 一键调度功能 ===== -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('auto-scheduler-btn');
+        if (!btn) return;
+    
+        btn.addEventListener('click', async function() {
+            if (!confirm('将运行 Python 调度算法，确定继续？')) return;
+        
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+        
+            try {
+                const res = await fetch('/api/auto_schedule', { method: 'POST' });
+                const data = await res.json();
+            
+                if (data.status === 'success') {
+                    alert('✅ 调度完成！\n' + data.message);
+                    location.reload();
+                } else {
+                    alert('❌ 调度失败：' + data.message);
+                }
+            } catch (err) {
+                alert('❌ 请求失败：' + err.message);
+            }
+        
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        });
+    });
+    </script>
+
+    <!-- ===== 任务分配面板功能 ===== -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 加载任务分配数据
+        async function loadTaskAssignment() {
+            const container = document.getElementById('assignment-container');
+            if (!container) return;
+            
+            container.innerHTML = '<div class="assignment-loading">加载中...</div>';
+            
+            try {
+                const res = await fetch('/api/task_assignment');
+                if (!res.ok) throw new Error('网络错误');
+                const data = await res.json();
+                
+                if (data.status !== 'success') {
+                    container.innerHTML = `<div class="assignment-empty"><div class="icon">⚠️</div><p>${data.message || '加载失败'}</p></div>`;
+                    return;
+                }
+                
+                if (data.total_tasks === 0) {
+                    container.innerHTML = `
+                        <div class="assignment-empty">
+                            <div class="icon">📋</div>
+                            <p>暂无任务分配结果</p>
+                            <p style="font-size:13px;color:#a0aec0;margin-top:4px;">请点击"智能调度"按钮生成任务分配</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 渲染分配结果
+                let html = `<div style="display:grid;gap:14px;">`;
+                
+                const colors = ['#2f9df4', '#22b573', '#f6b73c', '#ff6b35', '#805ad5', '#e53e3e'];
+                
+                data.assignment.forEach((machine, idx) => {
+                    const color = colors[idx % colors.length];
+                    const statusCount = machine.tasks.filter(t => t.status === '已完成').length;
+                    
+                    html += `
+                        <div style="background:#f7fafc;border-radius:12px;padding:14px 16px;border-left:4px solid ${color};">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:17px;font-weight:700;color:${color};">🚜 ${machine.machine_name}</span>
+                                    <span style="background:${color};color:white;padding:2px 12px;border-radius:12px;font-size:12px;">${machine.task_count} 个任务</span>
+                                    <span style="font-size:12px;color:#718096;">已完成 ${statusCount}/${machine.task_count}</span>
+                                </div>
+                                <span style="color:#718096;font-size:12px;">📍 (${machine.machine_lng.toFixed(4)}, ${machine.machine_lat.toFixed(4)})</span>
+                            </div>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                    `;
+                    
+                    machine.tasks.forEach((task, i) => {
+                        const isLast = i === machine.tasks.length - 1;
+                        const statusColor = task.status === '已完成' ? '#38a169' : task.status === '已接收' ? '#3182ce' : '#dd6b20';
+                        html += `
+                            <span style="display:inline-flex;align-items:center;gap:4px;background:white;padding:4px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:13px;">
+                                <span style="background:${color};color:white;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">${i+1}</span>
+                                <span>🌾 ${task.farmland_name}</span>
+                                <span style="color:#718096;font-size:11px;">(${task.operation_type})</span>
+                                <span style="background:${statusColor};color:white;padding:0 8px;border-radius:10px;font-size:10px;">${task.status}</span>
+                                ${!isLast ? '<span style="color:#cbd5e0;">→</span>' : ''}
+                            </span>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+                html += `
+                    <div style="text-align:center;margin-top:12px;color:#718096;font-size:13px;padding:8px;background:#f7fafc;border-radius:8px;">
+                        📊 共 ${data.total_machines} 台农机 · ${data.total_tasks} 个任务
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+                
+            } catch (err) {
+                container.innerHTML = `<div class="assignment-empty"><div class="icon">⚠️</div><p>加载失败：${err.message}</p></div>`;
+                console.error('加载任务分配失败:', err);
+            }
+        }
+
+        // 刷新按钮
+        const refreshBtn = document.getElementById('refresh-assignment');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', loadTaskAssignment);
+        }
+
+        // 保存原始的 switchPanel 函数（如果存在）
+        const originalSwitchPanel = window.switchPanel;
+
+        // 重写 switchPanel 以支持 assignment 面板
+        window.switchPanel = function(panel) {
+            if (originalSwitchPanel) {
+                originalSwitchPanel(panel);
+            }
+            if (panel === 'assignment') {
+                setTimeout(loadTaskAssignment, 100);
+            }
+        };
+
+        // 如果面板已经加载完成，切换时加载数据
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const panel = this.dataset.panel;
+                if (panel === 'assignment') {
+                    setTimeout(loadTaskAssignment, 200);
+                }
+            });
+        });
+
+        // 初始加载（如果 assignment 面板默认可见）
+        const assignmentView = document.getElementById('assignment-view');
+        if (assignmentView && assignmentView.classList.contains('active')) {
+            loadTaskAssignment();
+        }
+    });
+    </script>
+
+        <!-- ===== 历史调度结果功能 ===== -->
+    <script>
+    // ===== 加载历史结果列表 =====
+    async function loadHistoryList() {
+        const container = document.getElementById('history-list');
+        if (!container) return;
+        
+        container.innerHTML = '<div style="text-align:center;padding:12px;color:#a0aec0;font-size:13px;">加载中...</div>';
+        
+        try {
+            const res = await fetch('/api/history_list');
+            const data = await res.json();
+            
+            if (data.status !== 'success') {
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:#a0aec0;font-size:13px;">加载失败</div>';
+                return;
+            }
+            
+            if (data.files.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:#a0aec0;font-size:13px;">暂无历史结果</div>';
+                return;
+            }
+            
+            container.innerHTML = data.files.map(file => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f7fafc;border-radius:6px;margin-bottom:4px;border:1px solid #e2e8f0;font-size:13px;">
+                    <div>
+                        <span style="font-weight:500;">${file.timestamp}</span>
+                        <span style="color:#718096;font-size:12px;margin-left:8px;">成本: ${file.total_cost}</span>
+                        <span style="color:#718096;font-size:12px;margin-left:8px;">${file.agent_count}台 · ${file.task_count}个任务</span>
+                    </div>
+                    <button onclick="loadHistoryResult('${file.filename}')" style="background:#2b6cb0;color:white;border:none;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer;">
+                        加载
+                    </button>
+                </div>
+            `).join('');
+            
+        } catch (err) {
+            container.innerHTML = '<div style="text-align:center;padding:12px;color:#a0aec0;font-size:13px;">加载失败: ' + err.message + '</div>';
+        }
+    }
+
+    // ===== 加载指定的历史结果 =====
+    async function loadHistoryResult(filename) {
+        if (!confirm(`确定要加载历史结果 ${filename} 吗？当前任务将被覆盖。`)) return;
+        
+        try {
+            const res = await fetch('/api/load_history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: filename })
+            });
+            
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                alert('✅ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ 加载失败：' + data.message);
+            }
+        } catch (err) {
+            alert('❌ 请求失败：' + err.message);
+        }
+    }
+
+    // ===== 页面加载时加载历史列表 =====
+    document.addEventListener('DOMContentLoaded', function() {
+        // 刷新历史列表按钮
+        const refreshBtn = document.getElementById('refresh-history');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', loadHistoryList);
+        }
+        
+        // 初始加载历史列表
+        loadHistoryList();
+    });
+    </script>
+
+
+  </body>
+</html>

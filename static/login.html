@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>管理端登录 - 丘陵山地智能农机研发项目</title>
+    <link rel="stylesheet" href="./login.css?v=4" />
+  </head>
+  <body>
+    <div class="sky-scene" aria-hidden="true">
+      <span class="sun-glow"></span>
+      <span class="cloud cloud-a"></span>
+      <span class="cloud cloud-b"></span>
+      <span class="cloud cloud-c"></span>
+      <span class="light-beam beam-a"></span>
+      <span class="light-beam beam-b"></span>
+      <span class="mote mote-a"></span>
+      <span class="mote mote-b"></span>
+      <span class="mote mote-c"></span>
+      <span class="mote mote-d"></span>
+    </div>
+    <main class="login-shell login-shell-fresh">
+      <section class="login-hero" aria-label="系统说明">
+        <div class="brand-lockup">
+          <div class="brand-mark">农</div>
+          <div>
+          <h1>丘陵山地智能农机研发项目</h1>
+            <p>智能农机调度与作业管理平台</p>
+          </div>
+        </div>
+
+        <div class="hero-map" aria-hidden="true">
+          <div class="map-grid"></div>
+          <span class="field-dot dot-a"></span>
+          <span class="field-dot dot-b"></span>
+          <span class="field-dot dot-c"></span>
+          <span class="field-dot dot-d"></span>
+          <span class="machine-pin">农机在线</span>
+          <svg viewBox="0 0 560 320" role="img" aria-label="调度线路示意">
+            <path d="M98 210 C 160 128, 224 248, 304 154 S 452 92, 484 190" />
+          </svg>
+        </div>
+
+        <div class="hero-copy">
+          <strong>管理人员工作台</strong>
+          <span>面向农机调度、作业任务、地块管理与运行监管的一体化控制台。</span>
+        </div>
+      </section>
+
+      <section class="login-panel" aria-label="管理端登录">
+        <form id="login-form" class="login-form">
+          <div>
+            <p class="eyebrow">Admin Console</p>
+            <h2>管理端登录</h2>
+          </div>
+
+          <label>
+            <span>账号</span>
+            <input id="username" name="username" autocomplete="username" placeholder="请输入管理员账号" required />
+          </label>
+
+          <label>
+            <span>密码</span>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="请输入密码" required />
+          </label>
+
+          <button id="login-button" type="submit">登录管理端</button>
+          <p id="login-message" class="login-message" role="status"></p>
+
+          <div class="security-note">
+            <span>仅限授权管理人员访问</span>
+            <strong>请使用分配的账号和密码登录。</strong>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById('login-form');
+      const message = document.getElementById('login-message');
+      const button = document.getElementById('login-button');
+
+      fetch('/api/auth/me')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.authenticated && data.user?.role === 'admin') {
+            window.location.href = '/';
+          }
+        })
+        .catch(() => {});
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        message.textContent = '';
+        const passwordInput = document.getElementById('password');
+        if (passwordInput.value !== passwordInput.value.trim()) {
+          message.textContent = '密码前后包含空格，请删除空格后再登录';
+          message.classList.add('error');
+          passwordInput.focus();
+          return;
+        }
+        button.disabled = true;
+        button.textContent = '登录中...';
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: document.getElementById('username').value,
+              password: document.getElementById('password').value,
+            }),
+          });
+          let data = {};
+          try {
+            data = await res.json();
+          } catch (parseError) {
+            data = { error: await res.text() };
+          }
+
+          if (!res.ok) {
+            message.textContent = data.error || '登录失败';
+            message.classList.add('error');
+            return;
+          }
+
+          message.textContent = '登录成功，正在进入工作台...';
+          message.classList.remove('error');
+          window.location.href = data.redirect || '/';
+        } catch (err) {
+          message.textContent = '网络异常，请稍后重试';
+          message.classList.add('error');
+        } finally {
+          button.disabled = false;
+          button.textContent = '登录管理端';
+        }
+      });
+    </script>
+  </body>
+</html>
