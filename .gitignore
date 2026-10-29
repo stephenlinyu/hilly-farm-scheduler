@@ -13,6 +13,7 @@ env/
 *.sqlite-shm
 .farm_secret_key
 farm_management*.sqlite
+test_tmp/
 
 # Local secrets / config (only .example.json is committed)
 amap_config.json

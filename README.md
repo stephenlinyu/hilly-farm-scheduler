@@ -68,6 +68,15 @@ cp gpswv_config.example.json gpswv_config.json      # 可选：商家云平台�
 
 调度目标为最小化总转移距离 / 能耗 / 最大完工时间，约束包括坡度能耗、地块面积与农机工时。算法由 MATLAB 版本迁移到 Python，迁移后通过固定随机种子与数值容差做等价性回归。
 
+## 测试
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest tests -q
+```
+
+覆盖登录鉴权、CSRF 正反向、任务 CRUD、调度状态、轨迹与农机/农田查询等 **18 个接口用例**。测试使用临时 SQLite 数据库（`test_tmp/`），不会污染本地数据。
+
 ## 说明
 
 - 调度算法基于开源项目 **GA_MRTA**（Copyright (c) 2024 Thi Thuy Ngan Duong, MIT License）改进，原许可证见 `scheduler/LICENSE`。
