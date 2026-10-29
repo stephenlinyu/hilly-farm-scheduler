@@ -32,3 +32,10 @@ cpolar*
 # OS
 Thumbs.db
 .DS_Store
+
+# Diagnostic / temp
+*.db
+test_subdir/
+test_tmp_*/
+pytest-cache-files-*/
+.farm_test_*/
